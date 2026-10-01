@@ -187,8 +187,8 @@ fn catalog() -> Arc<dyn ArtifactCatalog> {
 
 #[test]
 fn with_a_catalog_the_definition_s_keys_are_read_and_named() {
-    // `TestingRegistry` matches key names case-sensitively, so the keys use the KB's spelling.
-    let root = r"HKLM\System\CurrentControlSet\Services\bam\State\UserSettings";
+    // The KB writes `HKEY_LOCAL_MACHINE\System\...`; the keys are stored as Windows spells them.
+    let root = STATE;
     let (records, _) = run(TriageSources::builder()
         .registry(Arc::new(registry(root)))
         .catalog(catalog())
