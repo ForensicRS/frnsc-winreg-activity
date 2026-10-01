@@ -9,16 +9,20 @@ pub mod app_id;
 pub mod bam;
 pub mod feature_usage;
 mod locate;
+pub mod mounted_devices;
 pub mod run_keys;
 pub mod services;
 pub mod shimcache;
 mod users;
+pub mod word_wheel_query;
 
 pub use app_id::AppId;
 pub use bam::{BamEntry, BamParserFactory, Moderator};
 pub use feature_usage::{
     Counter, FeatureUsageEntry, FeatureUsageParserFactory, read_feature_usage,
 };
+pub use mounted_devices::{MountedDevice, MountedDevicesParserFactory};
 pub use run_keys::{RunEntry, RunKeysParserFactory};
 pub use services::{ServiceEntry, ServicesParserFactory};
 pub use shimcache::{ShimCacheParserFactory, ShimEntry};
+pub use word_wheel_query::{SearchTerm, WordWheelQueryParserFactory};

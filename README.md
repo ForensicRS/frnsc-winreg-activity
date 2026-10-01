@@ -19,6 +19,8 @@ backend: live registry, parsed hive files, or `TestingRegistry`.
 | `run_keys` | `Run`, `RunOnce`, `RunOnceEx`, `Policies\Explorer\Run` (+ `Wow6432Node`), HKLM and per user (`WindowsRunKeys`) | `windows.registry.run_keys` |
 | `services` | `HKLM\SYSTEM\CurrentControlSet\Services\<name>` (+ `Parameters\ServiceDll`) (`WindowsServices`) | `windows.registry.services` |
 | `shimcache` | `HKLM\SYSTEM\<control set>\Control\Session Manager\AppCompatCache` (`WindowsAppCompatCache`), every control set | `windows.registry.shimcache` |
+| `mounted_devices` | `HKLM\SYSTEM\MountedDevices` (`WindowsMountedDevices`) | `windows.registry.mounted_devices` |
+| `word_wheel_query` | `HKU\<sid>\...\Explorer\WordWheelQuery` (`WindowsWordWheelQueryRegistryKey`) | `windows.registry.word_wheel_query` |
 
 ## Usage
 
@@ -61,3 +63,8 @@ Or register `FeatureUsageParserFactory` with a `TriagePipeline`.
   not an execution time, so there is no `@timestamp`; `shimcache.executed` is set only on 7 and
   8.x, which record it. Validated on two real Windows 7 caches (32- and 64-bit: 330 and 217
   entries, no errors).
+- MountedDevices: one record per mount point; the target decoded only when the data says so
+  unambiguously (12-byte MBR signature + offset, `DMIO:ID:` GPT GUID, printable UTF-16 device
+  path), otherwise `unknown`, always with the raw data. No time.
+- WordWheelQuery: one record per search term, with its `MRUListEx` position (0 = most recent).
+  The key's last-write time is carried but is not `@timestamp`: a re-search reorders the list too.
