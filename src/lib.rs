@@ -11,6 +11,7 @@ pub mod feature_usage;
 mod locate;
 pub mod run_keys;
 pub mod services;
+pub mod shimcache;
 mod users;
 
 pub use app_id::AppId;
@@ -20,3 +21,4 @@ pub use feature_usage::{
 };
 pub use run_keys::{RunEntry, RunKeysParserFactory};
 pub use services::{ServiceEntry, ServicesParserFactory};
+pub use shimcache::{ShimCacheParserFactory, ShimEntry};

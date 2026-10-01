@@ -18,6 +18,7 @@ backend: live registry, parsed hive files, or `TestingRegistry`.
 | `bam` | `HKLM\SYSTEM\CurrentControlSet\Services\{bam,dam}\[State\]UserSettings\<sid>` (`WindowsBackgroundActivityModeratorKeys`) | `windows.registry.bam` |
 | `run_keys` | `Run`, `RunOnce`, `RunOnceEx`, `Policies\Explorer\Run` (+ `Wow6432Node`), HKLM and per user (`WindowsRunKeys`) | `windows.registry.run_keys` |
 | `services` | `HKLM\SYSTEM\CurrentControlSet\Services\<name>` (+ `Parameters\ServiceDll`) (`WindowsServices`) | `windows.registry.services` |
+| `shimcache` | `HKLM\SYSTEM\<control set>\Control\Session Manager\AppCompatCache` (`WindowsAppCompatCache`), every control set | `windows.registry.shimcache` |
 
 ## Usage
 
@@ -54,3 +55,9 @@ Or register `FeatureUsageParserFactory` with a `TriagePipeline`.
   `ObjectName` (the account), `Start`/`Type` raw with their names, the key's last-write time (not
   an install time, so not `@timestamp`). A value of the wrong type is an `Err` item beside the
   record, never a guessed value.
+- ShimCache: XP, 2003/Vista/2008, 7/2008 R2 (32/64-bit), 8, 8.1 and 10/11 layouts; one record per
+  entry, most recent first (`shimcache.position`), from the current control set and every other
+  one (`shimcache.control_set`). The entry's time is the file's modification time (`file.mtime`),
+  not an execution time, so there is no `@timestamp`; `shimcache.executed` is set only on 7 and
+  8.x, which record it. Validated on two real Windows 7 caches (32- and 64-bit: 330 and 217
+  entries, no errors).
