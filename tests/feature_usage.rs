@@ -285,3 +285,39 @@ fn factory_runs_in_the_triage_pipeline() {
         "counters have no event time"
     );
 }
+
+#[test]
+fn each_user_s_records_come_from_that_user_s_own_registered_source() {
+    let records = Arc::new(std::sync::Mutex::new(Vec::new()));
+    let context = TriageContext::new("HOST01", "tenant");
+    let store = context.provenance_store();
+    TriagePipeline::builder()
+        .context(context)
+        .parser(Arc::new(FeatureUsageParserFactory::new()))
+        .sink(Box::new(Collect(records.clone())))
+        .on_parser_error(ErrorAction::Continue)
+        .build()
+        .unwrap()
+        // Offline hives: a live run reads every user through the one registry API, and has one
+        // source for it.
+        .run(
+            &TriageSources::builder()
+                .registry(Arc::new(registry()))
+                .acquisition(Acquisition::ImageRead)
+                .build(),
+        )
+        .unwrap();
+
+    let records = records.lock().unwrap();
+    assert!(!records.is_empty());
+    for record in records.iter() {
+        let sid = record.field(dictionary::USER_ID).unwrap().to_string();
+        let source = store.get(record.provenance()).unwrap().source;
+        let expected = counter_path(&sid, "");
+        assert_eq!(
+            source,
+            SourceKey::Path(expected.trim_end_matches('\\').to_string()),
+            "a record of {sid} must not share its source with another user"
+        );
+    }
+}

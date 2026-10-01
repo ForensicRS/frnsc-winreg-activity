@@ -5,6 +5,8 @@
 //! counter. The counters carry no timestamp of their own: the subkey's last-write time only
 //! says when *some* counter in it last changed.
 
+use std::collections::BTreeMap;
+
 use forensic_rs::{dictionary, prelude::*};
 
 use crate::{
@@ -217,19 +219,38 @@ impl ArtifactParserFactory for FeatureUsageParserFactory {
         })?;
         let host = ctx.host().to_string();
         let acquisition = ctx.acquisition();
-        let source = match acquisition {
-            Acquisition::LiveApi => SourceKey::Live {
+        let entries = read_feature_usage(registry.as_ref());
+        // One registered source per user's key, so provenance tells the users apart as the
+        // records' SIDs do. A live run reads every user through the one registry API.
+        let live = (acquisition == Acquisition::LiveApi).then(|| {
+            ctx.register_source(SourceKey::Live {
                 host: host.clone(),
                 api: "Registry".into(),
-            },
-            _ => SourceKey::Path(format!(r"HKU\*\{FEATURE_USAGE_PATH}")),
-        };
-        let source = ctx.register_source(source);
-        let entries = read_feature_usage(registry.as_ref());
+            })
+        });
+        let mut sources: BTreeMap<String, SourceHandle> = BTreeMap::new();
+        for entry in entries.iter().flatten() {
+            if !sources.contains_key(&entry.user_sid) {
+                let source = match &live {
+                    Some(live) => live.clone(),
+                    None => ctx.register_source(SourceKey::Path(format!(
+                        r"HKU\{}\{FEATURE_USAGE_PATH}",
+                        entry.user_sid
+                    ))),
+                };
+                sources.insert(entry.user_sid.clone(), source);
+            }
+        }
         Ok(ParserRun::pull(entries.into_iter().map(move |entry| {
-            entry.map(|entry| {
+            entry.and_then(|entry| {
+                let source = sources.get(&entry.user_sid).ok_or_else(|| {
+                    ForensicError::other(
+                        "FeatureUsageParserFactory",
+                        format!("no source registered for {}", entry.user_sid),
+                    )
+                })?;
                 let provenance = source.mint(acquisition, Recovery::Allocated);
-                to_forensic_data(&host, provenance, entry)
+                Ok(to_forensic_data(&host, provenance, entry))
             })
         })))
     }
