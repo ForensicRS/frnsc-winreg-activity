@@ -16,6 +16,7 @@ backend: live registry, parsed hive files, or `TestingRegistry`.
 |---|---|---|
 | `feature_usage` | `Software\Microsoft\Windows\CurrentVersion\Explorer\FeatureUsage` | `windows.registry.feature_usage` |
 | `bam` | `HKLM\SYSTEM\CurrentControlSet\Services\{bam,dam}\[State\]UserSettings\<sid>` (`WindowsBackgroundActivityModeratorKeys`) | `windows.registry.bam` |
+| `run_keys` | `Run`, `RunOnce`, `RunOnceEx`, `Policies\Explorer\Run` (+ `Wow6432Node`), HKLM and per user (`WindowsRunKeys`) | `windows.registry.run_keys` |
 
 ## Usage
 
@@ -45,3 +46,6 @@ Or register `FeatureUsageParserFactory` with a `TriagePipeline`.
   zero `FILETIME`). Executables stay as stored (`\Device\HarddiskVolumeN\...` is not mapped to a
   drive letter); the whole value is kept in `bam.data`. BAM keeps about a week of entries, so an
   absent entry is not evidence that a program didn't run.
+- Run keys: one record per value (RunOnceEx: per value of its numbered subkeys), with the command
+  line unexpanded in `process.command_line`, `run_keys.once`/`run_keys.wow64`, and the key's
+  last-write time; no `@timestamp`, since a value has no time of its own.

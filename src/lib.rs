@@ -9,6 +9,7 @@ pub mod app_id;
 pub mod bam;
 pub mod feature_usage;
 mod locate;
+pub mod run_keys;
 mod users;
 
 pub use app_id::AppId;
@@ -16,3 +17,4 @@ pub use bam::{BamEntry, BamParserFactory, Moderator};
 pub use feature_usage::{
     Counter, FeatureUsageEntry, FeatureUsageParserFactory, read_feature_usage,
 };
+pub use run_keys::{RunEntry, RunKeysParserFactory};
