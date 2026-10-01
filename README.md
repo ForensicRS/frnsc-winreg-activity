@@ -17,6 +17,7 @@ backend: live registry, parsed hive files, or `TestingRegistry`.
 | `feature_usage` | `Software\Microsoft\Windows\CurrentVersion\Explorer\FeatureUsage` | `windows.registry.feature_usage` |
 | `bam` | `HKLM\SYSTEM\CurrentControlSet\Services\{bam,dam}\[State\]UserSettings\<sid>` (`WindowsBackgroundActivityModeratorKeys`) | `windows.registry.bam` |
 | `run_keys` | `Run`, `RunOnce`, `RunOnceEx`, `Policies\Explorer\Run` (+ `Wow6432Node`), HKLM and per user (`WindowsRunKeys`) | `windows.registry.run_keys` |
+| `services` | `HKLM\SYSTEM\CurrentControlSet\Services\<name>` (+ `Parameters\ServiceDll`) (`WindowsServices`) | `windows.registry.services` |
 
 ## Usage
 
@@ -49,3 +50,7 @@ Or register `FeatureUsageParserFactory` with a `TriagePipeline`.
 - Run keys: one record per value (RunOnceEx: per value of its numbered subkeys), with the command
   line unexpanded in `process.command_line`, `run_keys.once`/`run_keys.wow64`, and the key's
   last-write time; no `@timestamp`, since a value has no time of its own.
+- Services: one record per service or driver key: `ImagePath` and `ServiceDll` as stored,
+  `ObjectName` (the account), `Start`/`Type` raw with their names, the key's last-write time (not
+  an install time, so not `@timestamp`). A value of the wrong type is an `Err` item beside the
+  record, never a guessed value.
