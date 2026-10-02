@@ -1,0 +1,55 @@
+# Builds this crate on its own against the ForensicRS 0.14 development branches on GitHub.
+name: Rust
+
+on:
+  push:
+    branches: [ main, V14 ]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy, rustfmt
+
+    - name: Use the ForensicRS development branches
+      # forensic-rs 0.14 and its sibling crates are not on crates.io yet. Developers patch them
+      # to their local checkouts in this same (gitignored) file; CI patches them to GitHub.
+      run: |
+        mkdir -p .cargo
+        cat > .cargo/config.toml <<'EOF'
+        [patch.crates-io]
+        forensic-rs = { git = "https://github.com/ForensicRS/forensic-rs", branch = "v14" }
+        EOF
+
+    - uses: Swatinem/rust-cache@v2
+
+    - name: Format
+      run: cargo fmt --check
+
+    - name: Clippy
+      run: cargo clippy --all-targets --all-features -- -D warnings
+
+    - name: Test
+      run: cargo test --all-targets --all-features
+
+    - name: Doc tests
+      run: cargo test --doc --all-features
+
+    - name: Docs
+      run: cargo doc --no-deps --all-features
