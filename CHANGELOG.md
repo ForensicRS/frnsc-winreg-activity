@@ -13,6 +13,13 @@
 
 ### Added
 
+- `shellbags`: `BagMRU` parser for NTUSER and UsrClass (`HKU\<sid>_Classes`) with
+  `ShellBagsParserFactory`. Decodes shell items without panicking on malformed data (namespace
+  roots, volumes and drive items, file and delegate entries with their `0xbeef0004` times and MFT
+  reference, network shares, Control Panel items, ZIP archive entries), rebuilds each item's path,
+  and keeps its `MRUListEx` position, `NodeSlot` and both its holding key's and own subkey's
+  last-write times.
+
 - `TrayButtonClicked` counters (the old `tray_clicks` field was never filled).
 - Each entry keeps the user SID, the raw value name and the subkey's last-write time.
 - `FeatureUsageEntry::assumed_vars` and the `feature_usage.app.assumed_vars` field: the

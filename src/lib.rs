@@ -12,6 +12,7 @@ mod locate;
 pub mod mounted_devices;
 pub mod run_keys;
 pub mod services;
+pub mod shellbags;
 pub mod shimcache;
 mod users;
 pub mod word_wheel_query;
@@ -24,5 +25,6 @@ pub use feature_usage::{
 pub use mounted_devices::{MountedDevice, MountedDevicesParserFactory};
 pub use run_keys::{RunEntry, RunKeysParserFactory};
 pub use services::{ServiceEntry, ServicesParserFactory};
+pub use shellbags::{ShellBagEntry, ShellBagsParserFactory, ShellItem};
 pub use shimcache::{ShimCacheParserFactory, ShimEntry};
 pub use word_wheel_query::{SearchTerm, WordWheelQueryParserFactory};

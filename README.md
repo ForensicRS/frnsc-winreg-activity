@@ -21,6 +21,7 @@ backend: live registry, parsed hive files, or `TestingRegistry`.
 | `shimcache` | `HKLM\SYSTEM\<control set>\Control\Session Manager\AppCompatCache` (`WindowsAppCompatCache`), every control set | `windows.registry.shimcache` |
 | `mounted_devices` | `HKLM\SYSTEM\MountedDevices` (`WindowsMountedDevices`) | `windows.registry.mounted_devices` |
 | `word_wheel_query` | `HKU\<sid>\...\Explorer\WordWheelQuery` (`WindowsWordWheelQueryRegistryKey`) | `windows.registry.word_wheel_query` |
+| `shellbags` | `HKU\<sid>\Software\Microsoft\Windows\Shell\BagMRU`, `HKU\<sid>_Classes\Local Settings\Software\Microsoft\Windows\Shell\BagMRU` | `windows.registry.shellbags` |
 
 ## Usage
 
@@ -68,3 +69,10 @@ Or register `FeatureUsageParserFactory` with a `TriagePipeline`.
   path), otherwise `unknown`, always with the raw data. No time.
 - WordWheelQuery: one record per search term, with its `MRUListEx` position (0 = most recent).
   The key's last-write time is carried but is not `@timestamp`: a re-search reorders the list too.
+- ShellBags: one record per `BagMRU` item, NTUSER and UsrClass (`HKU\<sid>_Classes`), with the
+  path rebuilt from its ancestors (`file.path`). Decoded: namespace roots, volumes and drives,
+  file entries (long name, created/accessed/modified FAT times, MFT reference from `0xbeef0004`),
+  delegate (`0x74`) entries, network locations and shares, Control Panel items and entries inside
+  ZIP archives (name, parent in the archive, Explorer's modified-time text). Other classes are kept
+  with their bytes and a best-guess readable name. `shellbags.last_opened` is the holding key's
+  last-write time, set only for the item first in its `MRUListEx`; no `@timestamp`.
